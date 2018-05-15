@@ -1,43 +1,49 @@
 command: "echo Hello World!",
 // command: 'date -v1d +"%e"; date -v1d -v+1m -v-1d +"%d"; date +"%d%n%m%n%Y"',
 
-dayNames: ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"],
-monthNames: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+dayNames: ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'],
+monthNames: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
 offdayIndices: [5, 6], // Fr, Sa
  
 refreshFrequency: 5000,
 displayedDate: null,
 
-render: function (output) {
-  return '<div class="cal-container">'
-  + '<div class=\"title\"></div>'
-  + '<table>'
-  + '<tr class=\"weekday\"></tr>'
-  + '<tr class=\"midline\"></tr>'
-  + '<tr class=\"date\"></tr>'
-  + '</table>'
-  + '</div>';
+render: function () {
+  return '<div class="cal-container">\
+  <div class="title"></div>\
+  <table>\
+  <tr class="weekday"></tr>\
+  <tr class="midline"></tr>\
+  <tr class="date"></tr>\
+  </table>\
+  </div>'
 },
  
 style: "                              \n\
-  bottom: 20px                        \n\
-  left: 20px                          \n\
+  top: 0px                        \n\
+  left: 0px                          \n\
+  width: 100%                          \n\
   font-family: Helvetica Neue         \n\
   font-size: 11px                     \n\
   font-weight: 500                    \n\
   color: #fff                         \n\
                                       \n\
   .cal-container                      \n\
-    border-radius: 10px               \n\
-    background: rgba(#000, 0.3)       \n\
+    border-radius: 0px               \n\
+    background: rgba(#000, 0.1)       \n\
     padding: 10px                     \n\
                                       \n\
   .title                              \n\
-    color: rgba(#fff, .3)             \n\
-    font-size: 14px                   \n\
-    font-weight: 500                  \n\
-    padding-bottom: 5px               \n\
+    color: rgba(#fff, 0.8)            \n\
+    font-size: 56px                   \n\
+    font-weight: 500px                \n\
+    padding-bottom: 0px               \n\
     text-transform uppercase          \n\
+    position: absolute                \n\
+    left: 100px\n\
+    opacity: 0.0                      \n\
+    margin-top: -15px                 \n\
+    z-index: -2                       \n\
                                       \n\
   table                               \n\
     border-collapse: collapse         \n\
@@ -82,39 +88,53 @@ style: "                              \n\
 ",
 
 update: function (output, domEl) {
-  // var date = output.split("\n"), firstWeekDay = date[0], lastDate = date[1], today = date[2], m = date[3]-1, y = date[4];
+  const date = new Date()
+  const y = date.getFullYear()
+  const m = date.getMonth()
+  const today = date.getDate();
   
-  // // DON'T MANUPULATE DOM IF NOT NEEDED
-  // if(this.displayedDate != null && this.displayedDate == output) return;
-  // else this.displayedDate = output;
+  // DON'T MANIPULATE DOM IF NOT NEEDED
+  const newDate = [today, m, y].join('/')
+  if(this.displayedDate !== null && this.displayedDate === newDate) {
+    return
+  } else {
+    this.displayedDate = newDate
+  }
 
-  var date = new Date(), y = date.getFullYear(), m = date.getMonth(), today = date.getDate();
+  const firstWeekDay = new Date(y, m, 1).getDay()
+  const lastDate = new Date(y, m + 1, 0).getDate()
   
-  // DON'T MANUPULATE DOM IF NOT NEEDED
-  var newDate = [today, m, y].join("/");
-  if(this.displayedDate != null && this.displayedDate == newDate) return;
-  else this.displayedDate = newDate;
+  let weekdays = ''
+  let midlines = ''
+  let dates = ''
 
-  var firstWeekDay = new Date(y, m, 1).getDay();
-  var lastDate = new Date(y, m + 1, 0).getDate();
-  
-  var weekdays = "", midlines = "", dates = "";
+  let hitToday = false
 
-  for (var i = 1, w = firstWeekDay; i <= lastDate; i++, w++) {
-    w %= 7;
-    var isToday = (i == today), isOffday = (this.offdayIndices.indexOf(w) != -1);
-    var className = "ordinary";
-    if(isToday && isOffday) className = "off-today";
-    else if(isToday) className = "today";
-    else if(isOffday) className = "offday";
+  for (let i = 1, w = firstWeekDay; i <= lastDate; i++, w++) {
+    w %= 7
+    const isToday = (i === today)
+    const isOffday = (this.offdayIndices.indexOf(w) !== -1)
+    let className = 'ordinary'
+    if (isToday && isOffday) {
+      className = 'off-today'
+    } else if (isToday) {
+      className = 'today'
+      hitToday = true
+    } else if(isOffday) {
+      className = 'offday'
+    }
+    
+    if (!hitToday) {
+      continue
+    }
 
-    weekdays += "<td class=\""+className+"\">" + this.dayNames[w] + "</td>";
-    midlines += "<td class=\""+className+"\"></td>";
-    dates += "<td class=\""+className+"\">" + i + "</td>";
-  };
+    weekdays += '<td class="' + className + '">' + this.dayNames[w] + '</td>'
+    midlines += '<td class="' + className + '"></td>'
+    dates += '<td class="' + className + '">' + i + '</td>'
+  }
 
-  $(domEl).find(".title").html(this.monthNames[m]+" "+y);
-  $(domEl).find(".weekday").html(weekdays);
-  $(domEl).find(".midline").html(midlines);
-  $(domEl).find(".date").html(dates);
+  $(domEl).find('.title').html(this.monthNames[m])
+  $(domEl).find('.weekday').html(weekdays)
+  $(domEl).find('.midline').html(midlines)
+  $(domEl).find('.date').html(dates)
 }
